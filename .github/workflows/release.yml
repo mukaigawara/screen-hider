@@ -1,0 +1,40 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set version from tag
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" ScreenHider/Info.plist
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $VERSION" ScreenHider/Info.plist
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Build and package
+        env:
+          BUILD_UNIVERSAL: "1"
+        run: |
+          chmod +x build.sh package.sh
+          ./package.sh
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ScreenHider ${{ env.VERSION }}
+          generate_release_notes: true
+          files: |
+            dist/ScreenHider-${{ env.VERSION }}.dmg
+            dist/ScreenHider-${{ env.VERSION }}.zip
+            dist/INSTALL.txt
