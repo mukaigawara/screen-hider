@@ -25,10 +25,46 @@ jobs:
       - name: Install pngquant
         run: brew install pngquant
 
+      - name: Import signing certificate
+        if: ${{ secrets.MACOS_CERTIFICATE != '' }}
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+        run: |
+          KEYCHAIN="$RUNNER_TEMP/app-signing.keychain-db"
+          security create-keychain -p "" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "" "$KEYCHAIN"
+          echo "$MACOS_CERTIFICATE" | base64 --decode > certificate.p12
+          security import certificate.p12 -k "$KEYCHAIN" -P "$MACOS_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" "$KEYCHAIN"
+          security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
+          rm -f certificate.p12
+
+      - name: Configure notarytool profile
+        if: ${{ secrets.MACOS_CERTIFICATE != '' }}
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          xcrun notarytool store-credentials "screen-hider-notary" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_SPECIFIC_PASSWORD"
+
       - name: Build and package
         env:
           BUILD_UNIVERSAL: "1"
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          CODESIGN_IDENTITY_SECRET: ${{ secrets.CODESIGN_IDENTITY }}
         run: |
+          if [ -n "$MACOS_CERTIFICATE" ]; then
+            export CODESIGN_IDENTITY="$CODESIGN_IDENTITY_SECRET"
+            export NOTARY_KEYCHAIN_PROFILE="screen-hider-notary"
+          else
+            export CODESIGN_IDENTITY="-"
+          fi
           chmod +x build.sh package.sh scripts/*.sh
           ./package.sh
 

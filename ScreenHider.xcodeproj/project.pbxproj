@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A10000010000000000000001 /* ScreenHiderApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000001 /* ScreenHiderApp.swift */; };
 		A10000010000000000000002 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000002 /* AppDelegate.swift */; };
 		A10000010000000000000003 /* OverlayManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000003 /* OverlayManager.swift */; };
 		A10000010000000000000004 /* OverlayWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000005 /* OverlayWindow.swift */; };
@@ -16,7 +15,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		A10000020000000000000001 /* ScreenHiderApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenHiderApp.swift; sourceTree = "<group>"; };
 		A10000020000000000000002 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A10000020000000000000003 /* OverlayManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayManager.swift; sourceTree = "<group>"; };
 		A10000020000000000000004 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -48,7 +46,6 @@
 		A10000050000000000000002 /* ScreenHider */ = {
 			isa = PBXGroup;
 			children = (
-				A10000020000000000000001 /* ScreenHiderApp.swift */,
 				A10000020000000000000002 /* AppDelegate.swift */,
 				A10000020000000000000003 /* OverlayManager.swift */,
 				A10000020000000000000005 /* OverlayWindow.swift */,
@@ -120,7 +117,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A10000010000000000000001 /* ScreenHiderApp.swift in Sources */,
 				A10000010000000000000002 /* AppDelegate.swift in Sources */,
 				A10000010000000000000003 /* OverlayManager.swift in Sources */,
 				A10000010000000000000004 /* OverlayWindow.swift in Sources */,

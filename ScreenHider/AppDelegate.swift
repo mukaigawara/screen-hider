@@ -1,6 +1,7 @@
 import AppKit
 import Combine
 
+@main
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
   private var statusItem: NSStatusItem?
   private var cancellables = Set<AnyCancellable>()

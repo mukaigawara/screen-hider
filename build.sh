@@ -40,7 +40,6 @@ rm -rf "$APP_DIR"
 mkdir -p "$MACOS_DIR" "$RESOURCES_DIR"
 
 SWIFT_SOURCES=(
-  "$ROOT_DIR/ScreenHider/ScreenHiderApp.swift"
   "$ROOT_DIR/ScreenHider/AppDelegate.swift"
   "$ROOT_DIR/ScreenHider/OverlayManager.swift"
   "$ROOT_DIR/ScreenHider/OverlayWindow.swift"
@@ -50,7 +49,6 @@ SWIFT_SOURCES=(
 
 SWIFT_FLAGS=(
   -framework AppKit
-  -framework SwiftUI
   -framework Combine
   -framework Carbon
   -framework QuartzCore
@@ -80,6 +78,9 @@ fi
 
 cp "$ROOT_DIR/ScreenHider/Info.plist" "$APP_DIR/Contents/Info.plist"
 cp "$ROOT_DIR/ScreenHider/Resources/AppIcon.icns" "$RESOURCES_DIR/AppIcon.icns"
+
+chmod +x "$ROOT_DIR/scripts/codesign-app.sh"
+"$ROOT_DIR/scripts/codesign-app.sh" "$APP_DIR"
 
 echo "Built: $APP_DIR"
 
