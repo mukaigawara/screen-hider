@@ -26,11 +26,14 @@ jobs:
         run: brew install pngquant
 
       - name: Import signing certificate
-        if: ${{ secrets.MACOS_CERTIFICATE != '' }}
         env:
           MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
           MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
         run: |
+          if [ -z "$MACOS_CERTIFICATE" ]; then
+            echo "Skipping certificate import (MACOS_CERTIFICATE not configured)"
+            exit 0
+          fi
           KEYCHAIN="$RUNNER_TEMP/app-signing.keychain-db"
           security create-keychain -p "" "$KEYCHAIN"
           security set-keychain-settings -lut 21600 "$KEYCHAIN"
@@ -42,12 +45,16 @@ jobs:
           rm -f certificate.p12
 
       - name: Configure notarytool profile
-        if: ${{ secrets.MACOS_CERTIFICATE != '' }}
         env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
+          if [ -z "$MACOS_CERTIFICATE" ]; then
+            echo "Skipping notarytool profile setup (MACOS_CERTIFICATE not configured)"
+            exit 0
+          fi
           xcrun notarytool store-credentials "screen-hider-notary" \
             --apple-id "$APPLE_ID" \
             --team-id "$APPLE_TEAM_ID" \
