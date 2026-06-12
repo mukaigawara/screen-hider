@@ -22,11 +22,14 @@ jobs:
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $VERSION" ScreenHider/Info.plist
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
+      - name: Install pngquant
+        run: brew install pngquant
+
       - name: Build and package
         env:
           BUILD_UNIVERSAL: "1"
         run: |
-          chmod +x build.sh package.sh
+          chmod +x build.sh package.sh scripts/*.sh
           ./package.sh
 
       - name: Upload to GitHub Release

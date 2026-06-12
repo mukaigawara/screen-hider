@@ -5,27 +5,29 @@ func isYellowContent(r: UInt8, g: UInt8, b: UInt8) -> Bool {
   return r > 170 && g > 110 && b < 150 && r >= g
 }
 
-func shouldUseIconBlue(r: UInt8, g: UInt8, b: UInt8, br: UInt8, bg: UInt8, bb: UInt8) -> Bool {
-  if isYellowContent(r: r, g: g, b: b) { return false }
-
+func isCheckerboardOrArtifact(r: UInt8, g: UInt8, b: UInt8) -> Bool {
   let ri = Int(r)
   let gi = Int(g)
   let bi = Int(b)
   let sum = ri + gi + bi
   let spread = max(ri, gi, bi) - min(ri, gi, bi)
-  let iconLum = Int(br) + Int(bg) + Int(bb)
 
-  // 白・チェッカー用グレー
   if sum > 720 && spread < 30 { return true }
   if ri > 185 && gi > 185 && bi > 185 && spread < 25 { return true }
+  return false
+}
 
-  // 角の白い縁（アンチエイリアス）
+func shouldUseIconBlue(r: UInt8, g: UInt8, b: UInt8, br: UInt8, bg: UInt8, bb: UInt8) -> Bool {
+  if isYellowContent(r: r, g: g, b: b) { return false }
+
+  let sum = Int(r) + Int(g) + Int(b)
+  let iconLum = Int(br) + Int(bg) + Int(bb)
   if sum - iconLum > 90 { return true }
 
   return false
 }
 
-func sampleIconBlue(from pixels: [UInt8], width: Int, height: Int, bytesPerRow: Int, bpp: Int) -> (UInt8, UInt8, UInt8) {
+func sampleIconBlue(from pixels: [UInt8], width: Int, height: Int) -> (UInt8, UInt8, UInt8) {
   let points = [
     (width / 2, height / 2),
     (width / 3, height / 2),
@@ -39,7 +41,7 @@ func sampleIconBlue(from pixels: [UInt8], width: Int, height: Int, bytesPerRow: 
   var bs: [Int] = []
 
   for (x, y) in points {
-    let offset = y * bytesPerRow + x * bpp
+    let offset = (y * width + x) * 4
     guard offset + 2 < pixels.count else { continue }
     let r = pixels[offset]
     let g = pixels[offset + 1]
@@ -90,11 +92,11 @@ else {
   exit(1)
 }
 
-var srcPixels = [UInt8](repeating: 0, count: rowBytes * height)
+var srcPixels = [UInt8](repeating: 0, count: width * height * 4)
 for y in 0..<height {
   for x in 0..<width {
     let srcOffset = y * rowBytes + x * bpp
-    let dstOffset = y * width * 4 + x * 4
+    let dstOffset = (y * width + x) * 4
     srcPixels[dstOffset] = srcPtr[srcOffset]
     srcPixels[dstOffset + 1] = srcPtr[srcOffset + 1]
     srcPixels[dstOffset + 2] = srcPtr[srcOffset + 2]
@@ -102,13 +104,7 @@ for y in 0..<height {
   }
 }
 
-let (br, bg, bb) = sampleIconBlue(
-  from: srcPixels,
-  width: width,
-  height: height,
-  bytesPerRow: width * 4,
-  bpp: 4
-)
+let (br, bg, bb) = sampleIconBlue(from: srcPixels, width: width, height: height)
 
 var outPixels = [UInt8](repeating: 0, count: width * height * 4)
 for y in 0..<height {
@@ -117,7 +113,13 @@ for y in 0..<height {
     let r = srcPixels[offset]
     let g = srcPixels[offset + 1]
     let b = srcPixels[offset + 2]
-    if shouldUseIconBlue(r: r, g: g, b: b, br: br, bg: bg, bb: bb) {
+
+    if isCheckerboardOrArtifact(r: r, g: g, b: b) {
+      outPixels[offset] = 0
+      outPixels[offset + 1] = 0
+      outPixels[offset + 2] = 0
+      outPixels[offset + 3] = 0
+    } else if shouldUseIconBlue(r: r, g: g, b: b, br: br, bg: bg, bb: bb) {
       outPixels[offset] = br
       outPixels[offset + 1] = bg
       outPixels[offset + 2] = bb
@@ -131,9 +133,7 @@ for y in 0..<height {
   }
 }
 
-guard let provider = CGDataProvider(
-  data: Data(outPixels) as CFData
-) else {
+guard let provider = CGDataProvider(data: Data(outPixels) as CFData) else {
   fputs("Failed to create data provider\n", stderr)
   exit(1)
 }

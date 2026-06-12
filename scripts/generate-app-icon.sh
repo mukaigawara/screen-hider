@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/../" && pwd)"
 SOURCE_RAW="$ROOT_DIR/assets/AppIcon-source.png"
 SOURCE="$ROOT_DIR/assets/AppIcon-1024.png"
+COMPRESS="$ROOT_DIR/scripts/compress-png.sh"
 
 if [[ ! -f "$SOURCE_RAW" ]]; then
   echo "Error: $SOURCE_RAW not found" >&2
@@ -11,6 +12,9 @@ if [[ ! -f "$SOURCE_RAW" ]]; then
 fi
 
 swift "$ROOT_DIR/scripts/fix-app-icon.swift" "$SOURCE_RAW" "$SOURCE"
+chmod +x "$COMPRESS"
+"$COMPRESS" "$SOURCE"
+
 ICONSET="$ROOT_DIR/AppIcon.iconset"
 ICNS="$ROOT_DIR/ScreenHider/Resources/AppIcon.icns"
 
@@ -29,7 +33,12 @@ sips "${sips_args[@]}" -z 512 512   "$SOURCE" --out "$ICONSET/icon_256x256@2x.pn
 sips "${sips_args[@]}" -z 512 512   "$SOURCE" --out "$ICONSET/icon_512x512.png" >/dev/null
 sips "${sips_args[@]}" -z 1024 1024 "$SOURCE" --out "$ICONSET/icon_512x512@2x.png" >/dev/null
 
+for icon in "$ICONSET"/*.png; do
+  "$COMPRESS" "$icon"
+done
+
 iconutil -c icns "$ICONSET" -o "$ICNS"
 rm -rf "$ICONSET"
 
-echo "Generated: $ICNS"
+icns_kb=$(du -k "$ICNS" | cut -f1)
+echo "Generated: $ICNS (${icns_kb} KB)"
