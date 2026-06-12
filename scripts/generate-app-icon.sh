@@ -2,14 +2,17 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/../" && pwd)"
+SOURCE_RAW="$ROOT_DIR/assets/AppIcon-source.png"
 SOURCE="$ROOT_DIR/assets/AppIcon-1024.png"
-ICONSET="$ROOT_DIR/AppIcon.iconset"
-ICNS="$ROOT_DIR/ScreenHider/Resources/AppIcon.icns"
 
-if [[ ! -f "$SOURCE" ]]; then
-  echo "Error: $SOURCE not found" >&2
+if [[ ! -f "$SOURCE_RAW" ]]; then
+  echo "Error: $SOURCE_RAW not found" >&2
   exit 1
 fi
+
+swift "$ROOT_DIR/scripts/fix-app-icon.swift" "$SOURCE_RAW" "$SOURCE"
+ICONSET="$ROOT_DIR/AppIcon.iconset"
+ICNS="$ROOT_DIR/ScreenHider/Resources/AppIcon.icns"
 
 rm -rf "$ICONSET"
 mkdir -p "$ICONSET" "$(dirname "$ICNS")"
