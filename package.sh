@@ -4,32 +4,43 @@ set -euo pipefail
 APP_NAME="ScreenHider"
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DIST_DIR="$ROOT_DIR/dist"
-STAGING_DIR="$ROOT_DIR/.package-staging"
+DMG_STAGING_DIR="$ROOT_DIR/.dmg-staging"
+DMG_BACKGROUND="$ROOT_DIR/assets/dmg-background.png"
+CREATE_DMG="$ROOT_DIR/scripts/create-dmg/create-dmg"
 
 "$ROOT_DIR/build.sh" --no-open
 
 VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" \
   "$ROOT_DIR/.build/$APP_NAME.app/Contents/Info.plist")
 
-rm -rf "$DIST_DIR" "$STAGING_DIR"
-mkdir -p "$DIST_DIR" "$STAGING_DIR"
+rm -rf "$DIST_DIR" "$DMG_STAGING_DIR"
+mkdir -p "$DIST_DIR" "$DMG_STAGING_DIR"
 
-cp -R "$ROOT_DIR/.build/$APP_NAME.app" "$STAGING_DIR/"
-ln -s /Applications "$STAGING_DIR/Applications"
+swift "$ROOT_DIR/scripts/generate-dmg-background.swift" "$DMG_BACKGROUND"
+
+cp -R "$ROOT_DIR/.build/$APP_NAME.app" "$DMG_STAGING_DIR/"
 
 ZIP_PATH="$DIST_DIR/${APP_NAME}-${VERSION}.zip"
 DMG_PATH="$DIST_DIR/${APP_NAME}-${VERSION}.dmg"
 
 ditto -c -k --keepParent "$ROOT_DIR/.build/$APP_NAME.app" "$ZIP_PATH"
 
-hdiutil create \
-  -volname "$APP_NAME" \
-  -srcfolder "$STAGING_DIR" \
-  -ov \
-  -format UDZO \
-  "$DMG_PATH"
+chmod +x "$CREATE_DMG"
+"$CREATE_DMG" \
+  --volname "$APP_NAME" \
+  --volicon "$ROOT_DIR/ScreenHider/Resources/AppIcon.icns" \
+  --background "$DMG_BACKGROUND" \
+  --window-pos 200 120 \
+  --window-size 660 400 \
+  --icon-size 128 \
+  --text-size 12 \
+  --icon "$APP_NAME.app" 168 185 \
+  --hide-extension "$APP_NAME.app" \
+  --app-drop-link 492 185 \
+  "$DMG_PATH" \
+  "$DMG_STAGING_DIR"
 
-rm -rf "$STAGING_DIR"
+rm -rf "$DMG_STAGING_DIR"
 
 cat > "$DIST_DIR/INSTALL.txt" <<'EOF'
 ScreenHider インストール手順

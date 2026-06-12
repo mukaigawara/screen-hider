@@ -33,6 +33,9 @@ stop_app() {
 # 起動中のプロセスが古いバイナリを掴んでいると差し替えできない
 stop_app
 
+chmod +x "$ROOT_DIR/scripts/generate-app-icon.sh"
+"$ROOT_DIR/scripts/generate-app-icon.sh"
+
 rm -rf "$APP_DIR"
 mkdir -p "$MACOS_DIR" "$RESOURCES_DIR"
 
@@ -76,6 +79,7 @@ else
 fi
 
 cp "$ROOT_DIR/ScreenHider/Info.plist" "$APP_DIR/Contents/Info.plist"
+cp "$ROOT_DIR/ScreenHider/Resources/AppIcon.icns" "$RESOURCES_DIR/AppIcon.icns"
 
 echo "Built: $APP_DIR"
 

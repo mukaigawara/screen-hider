@@ -1,4 +1,10 @@
 .build/
 dist/
 .package-staging/
+.dmg-staging/
+AppIcon.iconset/
+.iconset/
+.iconset-test/
+ScreenHider/Resources/AppIcon.icns
+assets/dmg-background.png
 .DS_Store
